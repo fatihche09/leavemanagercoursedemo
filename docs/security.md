@@ -12,6 +12,8 @@
 - Sınırda doğrulama: request DTO'ları data annotations ile; iş kuralları Business'ta.
 - Tüm sorgular EF Core üzerinden parametrelidir. **Raw SQL yasaktır** (`FromSqlRaw`,
   `ExecuteSqlRaw` vb.).
+  Tek istisna: girdi almayan sabit sağlık probu sorgusu (`SELECT 1`), yalnızca
+  `LeaveManager.DataAccess` içinde (spec 0001, A-4).
 - React varsayılan escape'i kullanır; `dangerouslySetInnerHTML` yasaktır.
 - CORS yalnızca frontend origin'ine açıktır.
 - Hata yanıtlarında stack trace, SQL, iç mesaj sızmaz (`docs/conventions.md`, Error handling).
