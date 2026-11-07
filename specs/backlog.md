@@ -15,3 +15,5 @@ step 7). Nothing lands here without that decision; noise is rejected in the tria
 -->
 - **B-1** — `scripts/check` ve `scripts/doctor` macOS `/bin/sh` (bash 3.2) altında ayrıştırılamıyor (`$( … )` içindeki `case` → `syntax error near unexpected token ';;'`); `residue`, `init`, `selftest` etkilenmiyor — Source: bootstrap 2026-11-07 — Severity: Medium
   — Recommendation: ANEW çekirdeği yerelde yamalanmaz; upstream'e v1.24.x LTS düzeltmesi olarak bildirilir. O zamana kadar yerelde `dash ./scripts/check` ve `dash ./scripts/doctor`; CI (Ubuntu, `sh` = dash) etkilenmez — Deferred by: fatihcelik-spine, 2026-11-07, upstream LTS düzeltmesi bekleniyor
+- **B-2** — `.github/workflows/check.yml` .NET 10 ve Node 24 toolchain kurulumu içermiyor; CI tam `scripts/check`'i çalıştıramaz — Source: spec 0001, self-critique G-2 — Severity: Medium
+  — Recommendation: uzak repo erişimi açıldığında `actions/setup-dotnet` (10.0.x) ve `actions/setup-node` (24) adımlarını ekle; Docker Ubuntu runner'da hazır — Deferred by: fatihcelik-spine, 2026-11-07, push ertelendi
