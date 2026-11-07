@@ -1,25 +1,49 @@
 # Architecture
 
-> **Template — filled during bootstrap.** Describe the architecture you *decided on*, not an
-> aspiration. Agents read this file before planning; vague answers here become vague code.
+> Bootstrap'ta karar verildi (2026-11-07). Ajanlar plan yapmadan önce bu dosyayı okur.
 
 ## System overview
-<!-- 3–6 sentences: what the system is, its architectural style (monolith / modular monolith /
-services / etc.), and the one-line reason for that choice (link the ADR). -->
+LeaveManager, çalışanların izin talep ettiği, yöneticilerin onayladığı/reddettiği ve İK'nın izin
+türleri ile yıllık hakları tanımladığı bir izin yönetimi uygulamasıdır (kurs demosu). Backend tek
+bir **.NET 10 ASP.NET Core Web API**'dir ve klasik **N-Layer** mimariyle kurulur:
+Api → Business → DataAccess → Entities. Kalıcılık **EF Core 10 + PostgreSQL 17**'dir. Frontend
+ayrı bir **React 19 + Vite** SPA'dır ve backend'le yalnızca HTTP API üzerinden konuşur.
+Neden N-Layer: kursun hedef kitlesi için en tanıdık yapı; tek yönlü proje referansları ihlallerin
+çoğunu derleme zamanında yakalar (modüler monolit bilinçli olarak seçilmedi).
 
 ## Modules / components and ownership
-<!-- One row per module: single responsibility + the data it owns (conceptual, not table-level). -->
 
 | Module | Single responsibility | Owns |
 |---|---|---|
-| | | |
+| `LeaveManager.Api` (Presentation) | Controller'lar, kimlik doğrulama, DI kompozisyonu, hata → HTTP (ProblemDetails) eşlemesi, request/response DTO'ları | HTTP sözleşmesi (OpenAPI) |
+| `LeaveManager.Business` (BLL) | İş kuralları (BR-1…BR-7), servisler, doğrulama, sahiplik/hiyerarşi yetki kararları | Talep durum makinesi, iş günü ve bakiye hesabı |
+| `LeaveManager.DataAccess` (DAL) | EF Core `DbContext`, migration'lar, repository'ler | PostgreSQL şeması |
+| `LeaveManager.Entities` | Entity sınıfları ve enum'lar (`LeaveRequestStatus` vb.) | Veri modeli |
+| `src/frontend` (React) | Ekranlar, API istemcisi | UI durumu |
+
+Katmanlar içinde klasörler özelliğe göre ayrılır: `Employees`, `LeaveTypes`, `Entitlements`,
+`LeaveRequests`. Testler `tests/<Proje>.Tests` altında (`docs/testing.md`).
 
 ## Communication rules
-<!-- When is a direct call allowed, when an event/message, when is it forbidden? -->
+- Bağımlılık tek yönlüdür: **Api → Business → DataAccess → Entities**. Frontend → Api yalnızca HTTP.
+- Katmanlar arası yalnızca doğrudan, senkron çağrı. Mesajlaşma/event bus yok.
+- MediatR/CQRS kütüphanesi yok; use case'ler düz servis sınıflarıdır.
+- Business, DataAccess'in repository'lerini doğrudan kullanır (klasik N-Layer; Dependency
+  Inversion ilk sürümde yok — değişirse ADR).
 
 ## Forbidden dependencies (make them testable)
-<!-- Concrete prohibitions an architecture test could assert, e.g.
-"Module A never accesses Module B's internal types or storage — only its public interface." -->
+Mimari testleri (`tests/LeaveManager.Architecture.Tests`, NetArchTest) bunları doğrular:
+1. Alt katman üst katmana referans veremez: DataAccess → Business/Api, Business → Api,
+   Entities → herhangi bir proje yasaktır.
+2. `Api` içindeki controller'lar `DbContext` veya repository tiplerini kullanmaz; yalnızca
+   Business servislerini çağırır. Api'nin DataAccess referansı yalnızca DI kaydı içindir.
+3. İş kuralları yalnızca Business'ta yaşar: controller'da, repository'de veya frontend'de bakiye,
+   çakışma, iş günü hesabı yapılmaz (frontend en fazla kullanıcı kolaylığı için ön kontrol yapar;
+   karar her zaman backend'dedir).
+4. `Entities` hiçbir framework'e ve projeye bağımlı değildir. Entity'ler API'de doğrudan dönülmez;
+   her yanıt bir DTO'dur.
+5. Frontend veritabanına ve backend iç tiplerine erişmez; tek sözleşme API'dir.
 
 ## Deliberately out of scope
-<!-- Conscious non-goals for the current version. -->
+Mikroservisler, mesaj kuyruğu, event sourcing, CQRS/MediatR, çoklu tenant, bordro entegrasyonu,
+resmî tatil takvimi, e-posta bildirimleri, gerçek kimlik sağlayıcısı (IdP).
