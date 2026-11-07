@@ -13,3 +13,5 @@ step 7). Nothing lands here without that decision; noise is rejected in the tria
   — Recommendation: <the reviewer's action> — Deferred by: <name>, <YYYY-MM-DD>, <why>
   A decision deferred at bootstrap (its REPORT) uses Source: bootstrap <YYYY-MM-DD>.
 -->
+- **B-1** — `scripts/check` ve `scripts/doctor` macOS `/bin/sh` (bash 3.2) altında ayrıştırılamıyor (`$( … )` içindeki `case` → `syntax error near unexpected token ';;'`); `residue`, `init`, `selftest` etkilenmiyor — Source: bootstrap 2026-11-07 — Severity: Medium
+  — Recommendation: ANEW çekirdeği yerelde yamalanmaz; upstream'e v1.24.x LTS düzeltmesi olarak bildirilir. O zamana kadar yerelde `dash ./scripts/check` ve `dash ./scripts/doctor`; CI (Ubuntu, `sh` = dash) etkilenmez — Deferred by: fatihcelik-spine, 2026-11-07, upstream LTS düzeltmesi bekleniyor

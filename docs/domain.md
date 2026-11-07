@@ -1,24 +1,39 @@
 # Domain
 
-> **Template — filled during bootstrap.** The shared language between business, humans, and agents.
-> If a term isn't here, expect the AI to invent its own meaning for it.
+> Bootstrap'ta karar verildi (2026-11-07). Burada olmayan bir terim için ajan kendi anlamını
+> uydurur — yeni terimi önce buraya ekleyin.
 
 ## Ubiquitous language
-<!-- One row per term. Same word = same meaning, everywhere: code, specs, conversation. -->
 
 | Term | Meaning | Notes / not to be confused with |
 |---|---|---|
-| | | |
+| Çalışan (`Employee`) | İzin talep eden kişi; tam olarak bir yöneticiye bağlıdır | Kullanıcı hesabı ≠ çalışan kaydı |
+| Yönetici (`Manager`) | Doğrudan bağlı çalışanlarının taleplerini onaylar/reddeder | Yalnızca *doğrudan* bağlılar; dolaylı hiyerarşi yok |
+| İK (`HR`) | İzin türlerini ve yıllık hakları tanımlar | Talep onaylamaz (kendi yöneticisi değilse) |
+| İzin türü (`LeaveType`) | Yıllık izin, Mazeret izni vb.; `DeductsFromBalance` bakiyeden düşüp düşmediğini belirler | |
+| İzin hakkı (`Entitlement`) | Çalışan × yıl × izin türü için hak edilen gün sayısı | Bakiye değildir |
+| Bakiye (`Balance`) | Hak − onaylanan günler − bekleyen günler; **hesaplanır, saklanmaz** | |
+| İzin talebi (`LeaveRequest`) | Tarih aralığı + tür + durum: `Pending`, `Approved`, `Rejected`, `Cancelled` | |
+| İş günü (`Working day`) | Pazartesi–Cuma; ilk sürümde resmî tatiller yok sayılır | Takvim günü değil |
+| Talep süresi | Aralıktaki iş günü sayısı (tam gün) | Yarım gün yok |
 
 ## Business rules
-<!-- Numbered, testable statements. e.g. "BR-3: An order in status Delivered is immutable." -->
+- **BR-1:** Talep süresi yalnızca iş günleriyle, tam gün birimiyle hesaplanır.
+- **BR-2:** Bitiş tarihi başlangıçtan önce olamaz; geçmiş tarihe talep açılamaz.
+- **BR-3:** Bakiyeden düşen türlerde talep edilen gün bakiyeyi aşamaz; `Pending` talepler bakiyeyi
+  rezerve eder.
+- **BR-4:** Bir çalışanın `Pending` veya `Approved` talepleri tarih olarak çakışamaz.
+- **BR-5:** Bir talebi yalnızca çalışanın yöneticisi onaylar/reddeder; kimse kendi talebini onaylayamaz.
+- **BR-6:** Yalnızca `Pending` bir talep onaylanabilir, reddedilebilir veya iptal edilebilir (iptal
+  yalnızca talep sahibi tarafından); `Rejected` ve `Cancelled` nihaidir.
+- **BR-7:** Reddetme gerekçesi zorunludur.
 
 ## Key domain invariants
-<!-- Things that must NEVER be violated, regardless of feature pressure. -->
+- Bakiye hiçbir zaman negatif olamaz (BR-3), eşzamanlı onaylar altında da.
+- `Approved` bir talep ilk sürümde değiştirilemez.
+- Bir talep aynı anda iki kez karara bağlanamaz (optimistic concurrency, `docs/conventions.md`).
 
 ## Sensitive areas
-<!-- Where a mistake costs money, access or legal standing (e.g. payments, identity, personal
-     data). A spec that touches one says so in Constraints (`Sensitive area: <name>`); there the
-     clarify gate is asked in lite too, every fix round but a documents-only one is
-     re-reviewed, and every criterion is proven red by one deliberate break
-     (workflows/README.md, Modes). "None" is a valid answer. -->
+- **Yetkilendirme** — kimin hangi talebi görebildiği, onaylayabildiği, iptal edebildiği (BR-5, BR-6;
+  `docs/security.md`).
+- **Bakiye hesabı** — hak, rezervasyon ve düşüm (BR-1, BR-3, eşzamanlılık).

@@ -1,6 +1,6 @@
 # Testing
 
-> **Template — filled during bootstrap.**
+> Bootstrap'ta karar verildi (2026-11-07). Test araçları walking skeleton'da kurulur.
 
 ## The contract
 - Every acceptance criterion maps to at least one test (criterion ↔ test map lives in the plan).
@@ -8,11 +8,36 @@
 - The whole suite runs inside `scripts/check` — one command, everywhere.
 
 ## Frameworks & layout
-<!-- Test framework(s), where tests live, naming pattern. -->
+
+| Layer | Proves | Tool | Location | Profile |
+|---|---|---|---|---|
+| Unit | Business kuralları (BR-1…BR-7), iş günü hesabı | xUnit v3, DB yok, sahte repository'ler | `tests/LeaveManager.Business.Tests` | `[fast]` |
+| Architecture | Yasak bağımlılıklar (`docs/architecture.md`) | xUnit v3 + NetArchTest | `tests/LeaveManager.Architecture.Tests` | `[fast]` |
+| Integration | API → DB: yetki (403), çakışma (409), eşzamanlılık, migration'lar | xUnit v3 + `WebApplicationFactory` + Testcontainers PostgreSQL 17, trait `Category=Integration` | `tests/LeaveManager.Api.IntegrationTests` | full only |
+| UI component | Ekran durumları: boş, yükleniyor, hata, başarılı, yetkisiz | Vitest + React Testing Library + MSW | `src/frontend/src/**/*.test.tsx` | `[fast]` |
+| e2e | — | **yok** | — | — |
+
+- Fast/full ayrımı bir seçiciyle: fast `--filter-not-trait "Category=Integration"`, full-only
+  `--filter-trait "Category=Integration"` (rule 4; xUnit v3 tuzağı: `docs/conventions.md`).
+- Test adları `Method_Condition_ExpectedResult`.
+- **Determinism:** backend zamanı `TimeProvider`'dan okur, testlerde `FakeTimeProvider` ile
+  sabitlenir. Frontend testleri `vi.useFakeTimers`, `TZ=UTC`, locale `tr-TR`; animasyon/geçişler
+  test ortamında kapalı (`prefers-reduced-motion` + uygulamanın test anahtarı). Her test
+  çalıştırması yeni bir PostgreSQL container'ı + migration ile başlar; her test sınıfı kendi
+  verisini kurar, paylaşılan seed yok. Dış servisler yok (olursa stub).
+- UI ekran görüntüleri (Evidence for UI criteria): VERIFY oturumu headless bir tarayıcıyla, repo
+  dışında alır; araç ilk UI spec'inin planında seçilir.
 
 ## What must be tested
-<!-- e.g. every business rule (BR-n), every boundary/forbidden dependency; the e2e journeys and
-     budget, if the project has e2e at all (Test layers). -->
+- Her iş kuralı (BR-n) için en az bir unit test, sınır değerler dahil (bakiye = talep,
+  bakiye = talep − 1, hafta sonuna denk gelen aralık).
+- Her yasak bağımlılık için bir mimari testi.
+- Hassas alanlar (`docs/domain.md`) için entegrasyon testi: başkasının talebini onaylama → 403;
+  eşzamanlı iki onay → tek düşüm.
+- Her endpoint'in hata sözleşmesi (ProblemDetails + hata kodu).
+- Coverage eşiği yok: her kabul kriteri en az bir teste bağlanır.
+- **e2e yok** (bütçe: 0 yolculuk). UI kriterleri bileşen testleri + VERIFY ekran görüntüsüyle
+  kanıtlanır; e2e ihtiyacı ayrı bir kararla (ADR) ve bütçesiyle eklenir.
 
 ## Test layers
 1. **The cheapest test that proves the criterion.** Unit first, then component or integration

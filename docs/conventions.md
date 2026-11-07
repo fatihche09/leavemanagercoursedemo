@@ -1,39 +1,68 @@
 # Conventions
 
-> **Template — filled during bootstrap.** Only rules that are real: every rule here should be
-> either enforced by tooling (preferred) or checked in review. Aspirations don't belong here.
+> Bootstrap'ta karar verildi (2026-11-07). Buradaki her kural ya araçla zorlanır (tercih) ya da
+> review'da kontrol edilir.
 
 ## Language
-<!-- Set at bootstrap (step 0) and mirrored in AGENTS.md. Changing it later is allowed — edit both
-     places; existing documents are not translated retroactively. -->
-- Chat language (interviews, sessions): <!-- e.g. Turkish -->
-- Document language (docs/, specs, plans, ADRs, review and verify reports): <!-- e.g. Turkish -->
+- Chat language (interviews, sessions): Türkçe (`tr`)
+- Document language (docs/, specs, plans, ADRs, review and verify reports): Türkçe (`tr`)
 - Always English (protocol, not prose): ANEW core files, template headings and field labels,
   `Status:` values (Draft / Approved / In progress / Shipped), `Approved by / on:`, `Source:`.
-- Code identifiers, branch names, commit messages: <!-- default English; decide consciously -->
+- Code identifiers, branch names, commit messages: İngilizce. API alanları ve DB adları da
+  İngilizce; UI metinleri Türkçe. PR açıklaması Türkçe olabilir.
 - Agent messages (handoff summaries, refusals, `Next:` lines): chat language; command names, file
   paths and protocol fields verbatim.
 
 ## Language & framework versions
-<!-- Pin what matters. -->
+- .NET SDK 10.0.x (`global.json` ile sabitlenir), C# varsayılan dil sürümü, ASP.NET Core 10.
+- EF Core 10 + Npgsql provider; PostgreSQL 17.
+- xUnit v3, `Microsoft.AspNetCore.Mvc.Testing`, Testcontainers.PostgreSql, NetArchTest.
+- Node.js 24 LTS, npm 11, TypeScript 5 (`strict`), React 19, Vite 7, Vitest 3, React Testing
+  Library, MSW.
+- Kesin patch sürümleri walking skeleton'da sabitlenir (`global.json`, `Directory.Packages.props`,
+  `package-lock.json`).
 
 ## Naming
-<!-- Files, types, tests, branches — whatever the team must keep consistent. -->
+- C#: standart .NET konvansiyonları, file-scoped namespace. Servis `LeaveRequestService`, DTO
+  `CreateLeaveRequestDto`, repository `LeaveRequestRepository`.
+- Testler: `Method_Condition_ExpectedResult`; test projeleri `<Proje>.Tests`
+  (entegrasyon: `LeaveManager.Api.IntegrationTests`).
+- React: bileşen dosyaları PascalCase (`LeaveRequestForm.tsx`), hook'lar `useXxx`, testler
+  `*.test.tsx` yan yana.
+- API: kebab-case çoğul kaynaklar (`/api/leave-requests`), JSON alanları camelCase.
+- Branch'ler ve commit'ler: `docs/git.md`.
 
 ## Error handling
-<!-- The one blessed pattern. What never leaks to users. -->
+- Business, iş kuralı ihlallerini **`Result<T>` + hata kodu** olarak döner; exception yalnızca
+  beklenmeyen durumlar içindir.
+- Api, sonuçları **RFC 9457 ProblemDetails**'e çevirir: doğrulama 400, yetkisiz 403, bulunamadı
+  404, iş kuralı/durum çakışması 409. Yanıt her zaman bir hata kodu taşır (ör.
+  `leave.insufficient_balance`).
+- Stack trace, SQL, iç mesaj asla kullanıcıya sızmaz; beklenmeyen hata 500 + `traceId`.
 
 ## Data rules
-<!-- e.g. money/percentages use decimal types; timestamps are UTC; IDs are ... -->
+- İzin tarihleri `DateOnly` (DB: `date`) — saat dilimi yok. Audit zaman damgaları
+  (`CreatedAt`, `DecidedAt`) UTC `DateTimeOffset` (DB: `timestamptz`).
+- Gün sayıları ve bakiye `int` (tam gün). Bakiye saklanmaz, her seferinde hesaplanır.
+- ID'ler `Guid` (UUID v7, `Guid.CreateVersion7()`).
+- Optimistic concurrency: `LeaveRequest` üzerinde PostgreSQL `xmin` concurrency token.
+- Enum'lar DB'ye string olarak yazılır.
+- Zaman `TimeProvider` üzerinden okunur; `DateTime.Now`/`UtcNow` doğrudan kullanılmaz.
 
 ## Known traps
-<!-- Starts empty. One line per trap of this stack that a builder can know up front:
-     "<trap> — <what to do instead> — from <spec/finding>". A line is added when triage marks a
-     finding real and the reviewer says a build-time rule would have caught it; the human
-     approves it at triage as Amendment A-n and the Developer writes it in the fix round.
-     Builders read this section before the first plan step.
-     A trap that tooling can catch moves to "Enforced by tooling" instead. -->
+- xUnit v3 (Microsoft Testing Platform) VSTest'in `--filter "Category!=Integration"` sözdizimini
+  değil `--filter-trait` / `--filter-not-trait` kullanır; yanlış filtre sessizce 0 test çalıştırır —
+  filtreyi sabitle ve her iki profilde test sayısını doğrula — from bootstrap 2026-11-07.
+- Npgsql 6+ `timestamptz`'ye `Kind=Local/Unspecified` `DateTime` yazınca exception atar —
+  `DateTimeOffset` (UTC) kullan, `EnableLegacyTimestampBehavior` asla açma — from bootstrap 2026-11-07.
+- EF Core'da concurrency token yoksa iki eşzamanlı onay ikisi de başarılı olur, bakiye iki kez
+  düşer — `LeaveRequest`'te `xmin`'i `IsRowVersion()` ile işaretle ve entegrasyon testiyle kanıtla —
+  from bootstrap 2026-11-07.
 
 ## Enforced by tooling
-<!-- List what the compiler/linter/analyzers already enforce, so review doesn't re-litigate it.
-Wire new rules into `scripts/check` whenever possible — prose is advice, tooling is law. -->
+<!-- Walking skeleton bunları scripts/check'e bağladığında geçerli olur. -->
+- `<Nullable>enable</Nullable>` ve `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`
+  (`Directory.Build.props`).
+- `dotnet format --verify-no-changes` (`.editorconfig`).
+- Katman bağımlılıkları: proje referansları + mimari testleri (`docs/architecture.md`).
+- TypeScript `strict`, ESLint (typescript-eslint), Prettier denetimi.
