@@ -12,13 +12,16 @@
 | Layer | Proves | Tool | Location | Profile |
 |---|---|---|---|---|
 | Unit | Business kuralları (BR-1…BR-7), iş günü hesabı | xUnit v3, DB yok, sahte repository'ler | `tests/LeaveManager.Business.Tests` | `[fast]` |
-| Architecture | Yasak bağımlılıklar (`docs/architecture.md`) | xUnit v3 + NetArchTest | `tests/LeaveManager.Architecture.Tests` | `[fast]` |
+| Architecture | Yasak bağımlılıklar (`docs/architecture.md`) | xUnit v3, reflection + `.csproj` okuma (kütüphane yok) | `tests/LeaveManager.Architecture.Tests` | `[fast]` |
 | Integration | API → DB: yetki (403), çakışma (409), eşzamanlılık, migration'lar | xUnit v3 + `WebApplicationFactory` + Testcontainers PostgreSQL 17, trait `Category=Integration` | `tests/LeaveManager.Api.IntegrationTests` | full only |
 | UI component | Ekran durumları: boş, yükleniyor, hata, başarılı, yetkisiz | Vitest + React Testing Library + MSW | `src/frontend/src/**/*.test.tsx` | `[fast]` |
 | e2e | — | **yok** | — | — |
 
 - Fast/full ayrımı bir seçiciyle: fast `--filter-not-trait "Category=Integration"`, full-only
   `--filter-trait "Category=Integration"` (rule 4; xUnit v3 tuzağı: `docs/conventions.md`).
+  Filtreye uymayan modül 8 koduyla çıkar; check bunu yok sayar, ama adımın toplamı 0 test ise
+  adım kırmızıdır (`scripts/check.conf`).
+- `tests/LeaveManager.Business.Tests` ilk iş kuralıyla açılır (boş test projesi MTP'de kırmızıdır).
 - Test adları `Method_Condition_ExpectedResult`.
 - **Determinism:** backend zamanı `TimeProvider`'dan okur, testlerde `FakeTimeProvider` ile
   sabitlenir. Frontend testleri `vi.useFakeTimers`, `TZ=UTC`, locale `tr-TR`; animasyon/geçişler
