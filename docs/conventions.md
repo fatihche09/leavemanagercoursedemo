@@ -67,7 +67,9 @@
   dinlemez; bağlantı 15 s, komut 30 s bekler, terk edilen havuz bağlantısı isteği açık tutar) —
   probe'u kendi kısa `Timeout`/`Command Timeout`'lu, `Cancellation Timeout=-1`, ayrı ve küçük
   (`Max Pool Size=2`) havuzuyla yap — havuzsuz bağlantı anonim uçtan sınırsız bağlantı açar; testi
-  container'ı `stop` değil `pause` ederek yaz — from spec 0001, review round 1–2 (F-1, F-5, A-3).
+  container'ı `stop` değil `pause` ederek yaz. `Cancellation Timeout=-1` iptal isteğini atlamaz:
+  komut zaman aşımında ~2×`Timeout` daha eklenir (ölçülen: 1 s → ~3 s, 2 s → ~5 s) — `Timeout`'u
+  AC sınırından geriye hesapla — from spec 0001, review round 1–3 (F-1, F-5, F-8, A-3, A-5).
 
 ## Enforced by tooling
 - `<Nullable>enable</Nullable>` ve `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`

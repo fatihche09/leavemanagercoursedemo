@@ -21,8 +21,9 @@ public static class DataAccessExtensions
 
     // Health probe on its own pool of at most two connections, so an anonymous request flood cannot
     // exhaust the server's connections. On a hung server Npgsql ignores the token and waits out its
-    // timeouts; 1 s to connect (or wait for a pool slot) plus 1 s per command, no cancellation wait,
-    // keep the probe at ~2 s worst case (docs/conventions.md, Known traps).
+    // timeouts. Measured worst case ~3 s: 1 s command timeout plus ~2 x Timeout for the cancel request
+    // (CancellationTimeout = -1 does not skip it); up to ~4 s when also waiting 1 s for a pool slot.
+    // Raising Timeout to 2 s already breaks the 5 s bound of AC-2 (docs/conventions.md, Known traps).
     public static async Task<bool> CanConnectQuicklyAsync(this LeaveManagerDbContext db, CancellationToken ct)
     {
         var builder = new NpgsqlConnectionStringBuilder(db.Database.GetConnectionString())
