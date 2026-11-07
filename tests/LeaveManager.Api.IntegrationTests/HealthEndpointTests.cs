@@ -3,6 +3,7 @@ using System.Net;
 using LeaveManager.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace LeaveManager.Api.IntegrationTests;
 
@@ -66,5 +67,24 @@ public class HealthEndpointTests
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5), $"Unhealthy took {stopwatch.Elapsed}.");
         Assert.Equal("Unhealthy", await response.Content.ReadAsStringAsync(ct));
+    }
+
+    [Fact]
+    public async Task Health_UnderConcurrentRequests_KeepsAtMostTwoProbeConnections()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var app = await PostgresApp.StartAsync();
+        using var client = app.Api.CreateClient();
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => client.GetAsync("/health", ct)));
+
+        Assert.All(responses, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+        // The probe has its own small pool: its idle connections stay open, and never more than two.
+        await using var connection = new NpgsqlConnection(app.Database.GetConnectionString());
+        await connection.OpenAsync(ct);
+        await using var command = new NpgsqlCommand(
+            "SELECT count(*) FROM pg_stat_activity WHERE application_name = 'health-probe'", connection);
+        var probeConnections = (long)(await command.ExecuteScalarAsync(ct))!;
+        Assert.InRange(probeConnections, 1, 2);
     }
 }

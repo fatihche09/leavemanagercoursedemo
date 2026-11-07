@@ -65,8 +65,9 @@
 
 - ASP.NET Core health check `Timeout`'u askıda kalan sunucuda Npgsql'i sınırlamaz (token'ı
   dinlemez; bağlantı 15 s, komut 30 s bekler, terk edilen havuz bağlantısı isteği açık tutar) —
-  probe'u kendi kısa `Timeout`/`Command Timeout`'lu, havuzsuz bağlantısıyla yap; testi container'ı
-  `stop` değil `pause` ederek yaz — from spec 0001, review round 1 (F-1, A-3).
+  probe'u kendi kısa `Timeout`/`Command Timeout`'lu, `Cancellation Timeout=-1`, ayrı ve küçük
+  (`Max Pool Size=2`) havuzuyla yap — havuzsuz bağlantı anonim uçtan sınırsız bağlantı açar; testi
+  container'ı `stop` değil `pause` ederek yaz — from spec 0001, review round 1–2 (F-1, F-5, A-3).
 
 ## Enforced by tooling
 - `<Nullable>enable</Nullable>` ve `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`

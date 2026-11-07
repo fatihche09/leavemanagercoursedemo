@@ -8,8 +8,9 @@ public static class DataAccessExtensions
 {
     public static IServiceCollection AddDataAccess(this IServiceCollection services, string connectionString)
     {
-        // An unreachable or hung server must fail fast: Npgsql's defaults wait 15 s to connect and,
-        // once cancelled, 2 s more for the server to acknowledge (docs/conventions.md, Known traps).
+        // Deliberate app-wide defaults, overriding the connection string: fail fast on an unreachable
+        // or hung server instead of Npgsql's 15 s connect wait (which also bounds waiting for a pool
+        // slot) and 2 s cancellation wait (docs/conventions.md, Known traps).
         var builder = new NpgsqlConnectionStringBuilder(connectionString)
         {
             Timeout = 3,
@@ -18,14 +19,16 @@ public static class DataAccessExtensions
         return services.AddDbContext<LeaveManagerDbContext>(options => options.UseNpgsql(builder.ConnectionString));
     }
 
-    // Health probe on its own short-lived, unpooled connection. On a hung server Npgsql ignores the
-    // token and waits out its timeouts, and an abandoned pooled query (30 s command timeout) holds the
-    // request open; tight timeouts here keep the probe at ~3 s worst case (docs/conventions.md, Known traps).
+    // Health probe on its own pool of at most two connections, so an anonymous request flood cannot
+    // exhaust the server's connections. On a hung server Npgsql ignores the token and waits out its
+    // timeouts; 1 s to connect (or wait for a pool slot) plus 1 s per command, no cancellation wait,
+    // keep the probe at ~2 s worst case (docs/conventions.md, Known traps).
     public static async Task<bool> CanConnectQuicklyAsync(this LeaveManagerDbContext db, CancellationToken ct)
     {
         var builder = new NpgsqlConnectionStringBuilder(db.Database.GetConnectionString())
         {
-            Pooling = false,
+            MaxPoolSize = 2,
+            ApplicationName = "health-probe",
             Timeout = 1,
             CommandTimeout = 1,
             CancellationTimeout = -1,
