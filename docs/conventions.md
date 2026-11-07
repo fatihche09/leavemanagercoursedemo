@@ -63,6 +63,11 @@
   düşer — `LeaveRequest`'te `xmin`'i `IsRowVersion()` ile işaretle ve entegrasyon testiyle kanıtla —
   from bootstrap 2026-11-07.
 
+- ASP.NET Core health check `Timeout`'u askıda kalan sunucuda Npgsql'i sınırlamaz (token'ı
+  dinlemez; bağlantı 15 s, komut 30 s bekler, terk edilen havuz bağlantısı isteği açık tutar) —
+  probe'u kendi kısa `Timeout`/`Command Timeout`'lu, havuzsuz bağlantısıyla yap; testi container'ı
+  `stop` değil `pause` ederek yaz — from spec 0001, review round 1 (F-1, A-3).
+
 ## Enforced by tooling
 - `<Nullable>enable</Nullable>` ve `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`
   (`Directory.Build.props`).
