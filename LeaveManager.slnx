@@ -6,4 +6,7 @@
     <Project Path="src/backend/LeaveManager.DataAccess/LeaveManager.DataAccess.csproj" />
     <Project Path="src/backend/LeaveManager.Entities/LeaveManager.Entities.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LeaveManager.Architecture.Tests/LeaveManager.Architecture.Tests.csproj" />
+  </Folder>
 </Solution>
