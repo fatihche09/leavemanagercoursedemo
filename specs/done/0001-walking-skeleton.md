@@ -1,6 +1,6 @@
 # Spec 0001 — Walking skeleton
 
-- Status: In progress
+- Status: Shipped
 - Mode: lite
 - Plan: `specs/plans/0001-plan.md`
 - Self-critique: done
@@ -55,36 +55,35 @@ yapılmaz.
   `.github/workflows/check.yml` toolchain kurulumu (push ertelendiği için; B-2), deploy/container imajı.
 
 ## Acceptance criteria
-- [ ] AC-1 — Uygulama ve veritabanı ayaktayken sağlık durumu kimlik doğrulamasız istenir ve
+- [x] AC-1 — Uygulama ve veritabanı ayaktayken sağlık durumu kimlik doğrulamasız istenir ve
   "sağlıklı" döner; veritabanı, boş bir veritabanına migration'lar uygulanarak hazırlanmıştır.
-- [ ] AC-2 — Veritabanına ulaşılamadığında sağlık durumu en geç 5 saniye içinde "sağlıksız" döner ve yanıt gövdesi
+- [x] AC-2 — Veritabanına ulaşılamadığında sağlık durumu en geç 5 saniye içinde "sağlıksız" döner ve yanıt gövdesi
   bağlantı dizesi, sunucu adı veya hata yığını içermez.
-- [ ] AC-3 — Bir alt katmanın üst katmana bağımlılığı veya `Entities`'in başka bir projeye
+- [x] AC-3 — Bir alt katmanın üst katmana bağımlılığı veya `Entities`'in başka bir projeye
   bağımlılığı mimari testiyle yakalanır (test, kasıtlı bir ihlalle kırmızıya düştüğü gösterilerek
   kanıtlanır).
-- [ ] AC-4 — Açılış sayfası, durum sorgusu sürerken yükleniyor metnini gösterir.
-- [ ] AC-5 — API sağlıklı yanıt verdiğinde açılış sayfası "API çalışıyor" metnini ve
+- [x] AC-4 — Açılış sayfası, durum sorgusu sürerken yükleniyor metnini gösterir.
+- [x] AC-5 — API sağlıklı yanıt verdiğinde açılış sayfası "API çalışıyor" metnini ve
   "LeaveManager" başlığını gösterir.
-- [ ] AC-6 — API'ye ulaşılamadığında, sağlıksız yanıt verdiğinde veya 5 saniye içinde yanıt
+- [x] AC-6 — API'ye ulaşılamadığında, sağlıksız yanıt verdiğinde veya 5 saniye içinde yanıt
   vermediğinde açılış sayfası hata metnini gösterir, teknik ayrıntı göstermez; durum metni `role="status"` ile sunulur.
-- [ ] AC-7 — `./scripts/check` tam profilde `check.conf`'taki tüm adımları, `--fast` yalnızca
+- [x] AC-7 — `./scripts/check` tam profilde `check.conf`'taki tüm adımları, `--fast` yalnızca
   `[fast]` adımlarını yeşil çalıştırır; fast'te çalışan test sayısı + yalnızca-full test sayısı =
   toplam test sayısı ve hiçbir test adımı 0 test çalıştırmaz.
-- [ ] AC-8 — `./scripts/residue` ve `./scripts/residue --fast` temiz çıkar
-  (`Residue: clean (fast + full)`); arka arkaya iki tam çalıştırma ikincisinde de yeşildir.
+- [ ] ~~AC-8 — `./scripts/residue` ve `./scripts/residue --fast` temiz çıkar (`Residue: clean (fast + full)`); arka arkaya iki tam çalıştırma ikincisinde de yeşildir.~~ → moved to B-6 — fatihcelik-spine, 2026-11-07, macOS'ta residue launchd ajanlarını orphan sayıyor (B-3) ve /bin/sh altında koşamıyor (B-1); `Residue: clean` bu makinede kanıtlanamadı
 
 ## Definition of Done
-- [ ] Every acceptance criterion mapped to proof (test or reproducible observation)
-- [ ] `scripts/check` green
-- [ ] Independent review done; real findings fixed, noise rejected with written rationale, deferred ones in `specs/backlog.md`
-- [ ] Docs / ADRs updated if behavior or architecture changed
-- [ ] Spec moved to `specs/done/` (it becomes immutable there)
+- [x] Every acceptance criterion mapped to proof (test or reproducible observation)
+- [x] `scripts/check` green
+- [x] Independent review done; real findings fixed, noise rejected with written rationale, deferred ones in `specs/backlog.md`
+- [x] Docs / ADRs updated if behavior or architecture changed
+- [x] Spec moved to `specs/done/` (it becomes immutable there)
 
 ## Scorecard (fill at ship — honest numbers make the process improvable)
 | Metric | Value |
 |---|---|
-| Spec revisions | |
-| Fix rounds | |
-| Review findings: real / noise / deferred | |
-| Regressions introduced | |
-| Bugs escaped to production | |
+| Spec revisions | 0 |
+| Fix rounds | 3 |
+| Review findings: real / noise / deferred | 10 / 1 / 2 (review F-1…F-9, verify V-1…V-4) |
+| Regressions introduced | 0 |
+| Bugs escaped to production | 0 (henüz deploy yok) |
