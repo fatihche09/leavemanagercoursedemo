@@ -4,4 +4,7 @@
     <ProjectReference Include="..\LeaveManager.DataAccess\LeaveManager.DataAccess.csproj" />
     <ProjectReference Include="..\LeaveManager.Entities\LeaveManager.Entities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+  </ItemGroup>
 </Project>
