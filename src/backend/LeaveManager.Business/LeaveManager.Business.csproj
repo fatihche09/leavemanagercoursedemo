@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\LeaveManager.DataAccess\LeaveManager.DataAccess.csproj" />
+    <ProjectReference Include="..\LeaveManager.Entities\LeaveManager.Entities.csproj" />
+  </ItemGroup>
+</Project>

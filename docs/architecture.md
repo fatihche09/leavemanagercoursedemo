@@ -32,7 +32,8 @@ Katmanlar içinde klasörler özelliğe göre ayrılır: `Employees`, `LeaveType
   Inversion ilk sürümde yok — değişirse ADR).
 
 ## Forbidden dependencies (make them testable)
-Mimari testleri (`tests/LeaveManager.Architecture.Tests`, NetArchTest) bunları doğrular:
+Mimari testleri (`tests/LeaveManager.Architecture.Tests`, reflection + `.csproj` okuma) 1 ve 4'ü
+doğrular; 2 (tip düzeyi) ilk controller'la birlikte test edilir:
 1. Alt katman üst katmana referans veremez: DataAccess → Business/Api, Business → Api,
    Entities → herhangi bir proje yasaktır.
 2. `Api` içindeki controller'lar `DbContext` veya repository tiplerini kullanmaz; yalnızca

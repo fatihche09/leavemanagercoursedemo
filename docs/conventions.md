@@ -15,12 +15,16 @@
 
 ## Language & framework versions
 - .NET SDK 10.0.x (`global.json` ile sabitlenir), C# varsayılan dil sürümü, ASP.NET Core 10.
-- EF Core 10 + Npgsql provider; PostgreSQL 17.
-- xUnit v3, `Microsoft.AspNetCore.Mvc.Testing`, Testcontainers.PostgreSql, NetArchTest.
-- Node.js 24 LTS, npm 11, TypeScript 5 (`strict`), React 19, Vite 7, Vitest 3, React Testing
-  Library, MSW.
-- Kesin patch sürümleri walking skeleton'da sabitlenir (`global.json`, `Directory.Packages.props`,
-  `package-lock.json`).
+  Solution: `LeaveManager.slnx`. Test runner: Microsoft.Testing.Platform (`global.json`).
+- EF Core 10 + Npgsql provider; PostgreSQL 17. EF Core sürümü tüm projelerde tek
+  (`Directory.Packages.props`, transitive pinning).
+- xUnit v3 (`xunit.v3` paketi), `Microsoft.AspNetCore.Mvc.Testing`, Testcontainers.PostgreSql.
+  Mimari testleri kütüphanesiz (reflection + `.csproj` okuma); tip düzeyi kurallar gerektiğinde
+  ArchUnitNET değerlendirilir.
+- Node.js 24 LTS, npm 11, TypeScript 6.0 (`strict`; typescript-eslint TS 7'yi henüz
+  desteklemiyor), React 19, Vite 8, Vitest 5, ESLint 10, Prettier 3, React Testing Library,
+  MSW 3 (plan 0001, A-1).
+- Kesin sürümler: `global.json`, `Directory.Packages.props`, `src/frontend/package-lock.json`.
 
 ## Naming
 - C#: standart .NET konvansiyonları, file-scoped namespace. Servis `LeaveRequestService`, DTO
@@ -59,10 +63,18 @@
   düşer — `LeaveRequest`'te `xmin`'i `IsRowVersion()` ile işaretle ve entegrasyon testiyle kanıtla —
   from bootstrap 2026-11-07.
 
+- ASP.NET Core health check `Timeout`'u askıda kalan sunucuda Npgsql'i sınırlamaz (token'ı
+  dinlemez; bağlantı 15 s, komut 30 s bekler, terk edilen havuz bağlantısı isteği açık tutar) —
+  probe'u kendi kısa `Timeout`/`Command Timeout`'lu, `Cancellation Timeout=-1`, ayrı ve küçük
+  (`Max Pool Size=2`) havuzuyla yap — havuzsuz bağlantı anonim uçtan sınırsız bağlantı açar; testi
+  container'ı `stop` değil `pause` ederek yaz. `Cancellation Timeout=-1` iptal isteğini atlamaz:
+  komut zaman aşımında ~2×`Timeout` daha eklenir (ölçülen: 1 s → ~3 s, 2 s → ~5 s) — `Timeout`'u
+  AC sınırından geriye hesapla — from spec 0001, review round 1–3 (F-1, F-5, F-8, A-3, A-5).
+
 ## Enforced by tooling
-<!-- Walking skeleton bunları scripts/check'e bağladığında geçerli olur. -->
 - `<Nullable>enable</Nullable>` ve `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`
   (`Directory.Build.props`).
 - `dotnet format --verify-no-changes` (`.editorconfig`).
 - Katman bağımlılıkları: proje referansları + mimari testleri (`docs/architecture.md`).
-- TypeScript `strict`, ESLint (typescript-eslint), Prettier denetimi.
+- TypeScript `strict`, ESLint (typescript-eslint, react-hooks), Prettier denetimi.
+- Bilinen High/Critical açığı olan NuGet/npm paketi yok (`deps-audit` adımı).

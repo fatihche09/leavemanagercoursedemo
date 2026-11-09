@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/backend/">
+    <Project Path="src/backend/LeaveManager.Api/LeaveManager.Api.csproj" />
+    <Project Path="src/backend/LeaveManager.Business/LeaveManager.Business.csproj" />
+    <Project Path="src/backend/LeaveManager.DataAccess/LeaveManager.DataAccess.csproj" />
+    <Project Path="src/backend/LeaveManager.Entities/LeaveManager.Entities.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LeaveManager.Api.IntegrationTests/LeaveManager.Api.IntegrationTests.csproj" />
+    <Project Path="tests/LeaveManager.Architecture.Tests/LeaveManager.Architecture.Tests.csproj" />
+  </Folder>
+</Solution>
